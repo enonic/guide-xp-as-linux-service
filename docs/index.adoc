@@ -18,6 +18,7 @@ Pay your attention on the following configuration options:
 - `Environment=XP_INSTALL=/opt/enonic/xp` - `XP_INSTALL` sets the location of your unzipped Enonic XP distribution.
 - `Environment=XP_JAVA_HOME=${XP_INSTALL}/jdk` - `XP_JAVA_HOME` specifies location of Java within the XP distro (system-wide `JAVA_HOME` will be used if omitted).
 - `ExecStart=/opt/enonic/xp/bin/server.sh` - commands with their arguments that are executed when this service is started. For each of the specified commands, the first argument must be an absolute path to an executable. You can find more details https://www.freedesktop.org/software/systemd/man/systemd.service.html#ExecStart=[here].
+- `User` and `Group` - make sure that you have a user and a group on the system which specified in your file with correct privileges to be able to execute files from directories which specified in the `XP_INSTALL` env variable and `ExecStart` option.
 
 Also will be useful to increase the operating system limits on `mmap` to avoid the out of memory exceptions. To set a new value permanently, update the `vm.max_map_count=262144` setting in `/etc/sysctl.conf`.
 
