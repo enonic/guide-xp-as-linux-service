@@ -11,54 +11,19 @@ Create a new systemd service file `xp.service` with the following command:
 sudo touch /etc/systemd/system/xp.service
 ----
 
-Once `xp.service` file is created you can add the service configuration options that allow to manage this service using `systemctl`.
+Once `xp.service` file is created you can add the service configuration options that allow to manage this service using `systemctl`. The template of service configuration you can find https://github.com/enonic/xp/blob/master/modules/runtime/src/service/systemd/xp.service[here].
 
-[source]
-----
-[Unit]
-Description=Enonic XP
-Documentation=https://developer.enonic.com/docs
-Wants=network-online.target
-After=network-online.target
+Pay your attention on the following configuration options:
 
-[Service]
-Type=simple
-PrivateTmp=true
-Environment=XP_INSTALL=/opt/enonic/xp <!--1-->
-Environment=XP_JAVA_HOME=${XP_INSTALL}/jdk <!--2-->
+- `Environment=XP_INSTALL=/opt/enonic/xp` - `XP_INSTALL` sets the location of your unzipped Enonic XP distribution.
+- `Environment=XP_JAVA_HOME=${XP_INSTALL}/jdk` - `XP_JAVA_HOME` specifies location of Java within the XP distro (system-wide `JAVA_HOME` will be used if omitted).
+- `ExecStart=/opt/enonic/xp/bin/server.sh` - commands with their arguments that are executed when this service is started. For each of the specified commands, the first argument must be an absolute path to an executable. You can find more details https://www.freedesktop.org/software/systemd/man/systemd.service.html#ExecStart=[here].
 
-User=xp
-Group=xp
+Also will be useful to increase the operating system limits on `mmap` to avoid the out of memory exceptions with the following command:
 
-ExecStart=/opt/enonic/xp/bin/server.sh <!--3-->
+ sudo sysctl -w vm.max_map_count=262144
 
-StandardOutput=journal
-StandardError=inherit
-
-LimitNOFILE=65535
-
-LimitNPROC=4096
-
-LimitAS=infinity
-
-LimitFSIZE=infinity
-
-KillSignal=SIGTERM
-
-KillMode=process
-
-SendSIGKILL=no
-
-SuccessExitStatus=143
-
-[Install]
-WantedBy=multi-user.target
-
-----
-
-<1> *XP_INSTALL* sets the location of your unzipped Enonic XP distribution.
-<2> *XP_JAVA_HOME* specifies location of Java within the XP distro (system-wide `JAVA_HOME` will be used if omitted).
-<3> *ExecStart* commands with their arguments that are executed when this service is started.
+or to set this value permanently, update the `vm.max_map_count` setting in `/etc/sysctl.conf`.
 
 Once the `xp.service` file is changed we can reload `systemctl` configuration to be able to start, stop, restart and check the status our service with the following command.
 
