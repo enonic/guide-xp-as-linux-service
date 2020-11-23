@@ -1,0 +1,155 @@
+= Run XP as a Linux service
+
+In this guide you will know how to run XP with `systemd`.
+
+== Create Systemd Service File
+
+Create a new systemd service file `xp.service` with the following command:
+
+[source]
+----
+sudo touch /etc/systemd/system/xp.service
+----
+
+Once `xp.service` file is created you can add the service configuration options that allow to manage this service using `systemctl`.
+
+[source]
+----
+[Unit]
+Description=Enonic XP
+Documentation=https://developer.enonic.com/docs
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+PrivateTmp=true
+Environment=XP_INSTALL=/opt/enonic/xp <!--1-->
+Environment=XP_JAVA_HOME=${XP_INSTALL}/jdk <!--2-->
+
+User=xp
+Group=xp
+
+ExecStart=/opt/enonic/xp/bin/server.sh <!--3-->
+
+StandardOutput=journal
+StandardError=inherit
+
+LimitNOFILE=65535
+
+LimitNPROC=4096
+
+LimitAS=infinity
+
+LimitFSIZE=infinity
+
+KillSignal=SIGTERM
+
+KillMode=process
+
+SendSIGKILL=no
+
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target
+
+----
+
+<1> *XP_INSTALL* sets the location of your unzipped Enonic XP distribution.
+<2> *XP_JAVA_HOME* specifies location of Java within the XP distro (system-wide `JAVA_HOME` will be used if omitted).
+<3> *ExecStart* commands with their arguments that are executed when this service is started.
+
+Once the `xp.service` file is changed we can reload `systemctl` configuration to be able to start, stop, restart and check the status our service with the following command.
+
+[source]
+----
+sudo systemctl daemon-reload
+----
+
+=== Checking status
+
+You can check the status with the following command:
+
+[source]
+----
+sudo systemctl status xp.service
+----
+
+You should see something like this in the output:
+
+  ● xp.service - Enonic XP
+   Loaded: loaded (/etc/systemd/system/xp.service; disabled; vendor preset: enabled)
+   Active: inactive (dead)
+     Docs: https://developer.enonic.com/docs
+
+=== Starting
+
+Service is stopped by default and we need to start it with the following command:
+
+[source]
+----
+sudo systemctl start xp.service
+----
+
+If check the status again you should see something like this in the output:
+
+[source]
+----
+● xp.service - Enonic XP
+   Loaded: loaded (/etc/systemd/system/xp.service; disabled; vendor preset: enabled)
+   Active: active (running) since Fri 2020-11-20 23:46:34 +03; 4s ago
+     Docs: https://developer.enonic.com/docs
+ Main PID: 13406 (java)
+    Tasks: 118 (limit: 4915)
+   CGroup: /system.slice/xp.service
+           └─13406 /opt/enonic/xp/jdk/bin/java -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly
+----
+
+If you want to start the `xp.service` service automatically when the system boots up execute the following command:
+
+[source]
+----
+sudo systemctl enable xp.service
+----
+
+You should see something like this in the output:
+
+ Created symlink /etc/systemd/system/multi-user.target.wants/xp.service → /etc/systemd/system/xp.service.
+
+If check the service status you should see something like this in the output:
+
+[source]
+----
+● xp.service - Enonic XP
+   Loaded: loaded (/etc/systemd/system/xp.service; enabled; vendor preset: enabled)
+   Active: inactive (dead)
+     Docs: https://developer.enonic.com/docs
+----
+
+=== Stopping
+
+To stop the service use the following command:
+
+[source]
+----
+sudo systemctl stop xp.service
+----
+
+=== Uninstalling
+
+To uninstall the service use the following commands:
+
+[source]
+----
+sudo systemctl stop xp.service
+
+sudo systemctl disable xp.service
+
+sudo rm /etc/systemd/system/xp.service
+
+sudo systemctl daemon-reload
+
+sudo systemctl reset-failed
+----
+
